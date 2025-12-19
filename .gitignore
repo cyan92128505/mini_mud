@@ -1,0 +1,66 @@
+# Binaries
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary
+*.test
+
+# Output of go coverage
+*.out
+coverage.html
+
+# Go workspace
+go.work
+go.work.sum
+
+# Dependency directories
+vendor/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+
+# Debug
+debug
+__debug_bin*
+
+# Local config overrides
+configs/config.local.yaml
+configs/*.local.yaml
+
+# Docker volumes (if mounted locally)
+.docker/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Build artifacts
+dist/
+
+# Generated protobuf (optional - uncomment if you commit generated files)
+# api/proto/**/*.pb.go
+
+# Commit plan (temporary)
+commit.md
