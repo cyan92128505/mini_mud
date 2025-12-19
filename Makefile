@@ -51,7 +51,15 @@ clean:
 
 # Database commands
 migrate-up:
-	mysql -u root < migrations/001_init.sql
+	@for f in migrations/*.sql; do echo "Running $$f..."; mysql -u root < "$$f"; done
+
+migrate-create:
+	@read -p "Migration name: " name; \
+	filename="migrations/$$(date +%Y%m%d%H%M%S)_$$name.sql"; \
+	echo "-- Migration: $$name" > "$$filename"; \
+	echo "-- Created: $$(date +%Y-%m-%d)" >> "$$filename"; \
+	echo "" >> "$$filename"; \
+	echo "Created: $$filename"
 
 # Docker commands
 docker-build:
@@ -66,13 +74,15 @@ docker-stop:
 # Help
 help:
 	@echo "Available commands:"
-	@echo "  make deps        - Install dependencies"
-	@echo "  make proto       - Generate protobuf code"
-	@echo "  make build       - Build the server binary"
-	@echo "  make run         - Run the server"
-	@echo "  make test        - Run tests"
-	@echo "  make lint        - Run linter"
-	@echo "  make fmt         - Format code"
-	@echo "  make clean       - Clean build artifacts"
-	@echo "  make docker-build - Build Docker image"
-	@echo "  make docker-run   - Start with Docker Compose"
+	@echo "  make deps          - Install dependencies"
+	@echo "  make proto         - Generate protobuf code"
+	@echo "  make build         - Build the server binary"
+	@echo "  make run           - Run the server"
+	@echo "  make test          - Run tests"
+	@echo "  make lint          - Run linter"
+	@echo "  make fmt           - Format code"
+	@echo "  make clean         - Clean build artifacts"
+	@echo "  make migrate-up    - Run all migrations"
+	@echo "  make migrate-create - Create new migration file"
+	@echo "  make docker-build  - Build Docker image"
+	@echo "  make docker-run    - Start with Docker Compose"
