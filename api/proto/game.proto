@@ -1,0 +1,311 @@
+syntax = "proto3";
+
+package game.v1;
+
+option go_package = "mini-mud/api/proto/game/v1;gamev1";
+
+// GameService provides the main game API.
+service GameService {
+    // Connect connects a player to the game.
+    rpc Connect(ConnectRequest) returns (ConnectResponse);
+
+    // Disconnect disconnects a player from the game.
+    rpc Disconnect(DisconnectRequest) returns (DisconnectResponse);
+
+    // Move moves a player in a direction.
+    rpc Move(MoveRequest) returns (MoveResponse);
+
+    // Attack performs an attack action.
+    rpc Attack(AttackRequest) returns (AttackResponse);
+
+    // Retreat retreats from combat.
+    rpc Retreat(RetreatRequest) returns (RetreatResponse);
+
+    // GetPlayerStatus returns the current player status.
+    rpc GetPlayerStatus(GetPlayerStatusRequest) returns (GetPlayerStatusResponse);
+
+    // GetMap returns the current map state.
+    rpc GetMap(GetMapRequest) returns (GetMapResponse);
+
+    // Subscribe subscribes to game events.
+    rpc Subscribe(SubscribeRequest) returns (stream GameEvent);
+}
+
+// Position represents a coordinate on the map.
+message Position {
+    int32 x = 1;
+    int32 y = 2;
+}
+
+// Direction represents movement direction.
+enum Direction {
+    DIRECTION_UNSPECIFIED = 0;
+    DIRECTION_UP = 1;
+    DIRECTION_DOWN = 2;
+    DIRECTION_LEFT = 3;
+    DIRECTION_RIGHT = 4;
+}
+
+// ConnectRequest is the request to connect to the game.
+message ConnectRequest {
+    string player_name = 1;
+}
+
+// ConnectResponse is the response after connecting.
+message ConnectResponse {
+    string player_id = 1;
+    PlayerStatus status = 2;
+}
+
+// DisconnectRequest is the request to disconnect.
+message DisconnectRequest {
+    string player_id = 1;
+}
+
+// DisconnectResponse is the response after disconnecting.
+message DisconnectResponse {
+    bool success = 1;
+}
+
+// MoveRequest is the request to move.
+message MoveRequest {
+    string player_id = 1;
+    Direction direction = 2;
+}
+
+// MoveResponse is the response after moving.
+message MoveResponse {
+    bool success = 1;
+    Position new_position = 2;
+    bool combat_started = 3;
+    string error = 4;
+}
+
+// AttackRequest is the request to attack.
+message AttackRequest {
+    string player_id = 1;
+}
+
+// AttackResponse is the response after attacking.
+message AttackResponse {
+    bool success = 1;
+    CombatResult result = 2;
+    string error = 3;
+}
+
+// RetreatRequest is the request to retreat.
+message RetreatRequest {
+    string player_id = 1;
+}
+
+// RetreatResponse is the response after retreating.
+message RetreatResponse {
+    bool success = 1;
+    Position new_position = 2;
+    string error = 3;
+}
+
+// GetPlayerStatusRequest is the request to get player status.
+message GetPlayerStatusRequest {
+    string player_id = 1;
+}
+
+// GetPlayerStatusResponse is the response with player status.
+message GetPlayerStatusResponse {
+    PlayerStatus status = 1;
+}
+
+// GetMapRequest is the request to get the map.
+message GetMapRequest {
+    string player_id = 1;
+}
+
+// GetMapResponse is the response with the map state.
+message GetMapResponse {
+    MapState map = 1;
+}
+
+// SubscribeRequest is the request to subscribe to events.
+message SubscribeRequest {
+    string player_id = 1;
+}
+
+// PlayerStatus represents a player's current status.
+message PlayerStatus {
+    string id = 1;
+    string name = 2;
+    int32 hp = 3;
+    int32 max_hp = 4;
+    int32 attack = 5;
+    int32 defense = 6;
+    int32 exp = 7;
+    int32 level = 8;
+    Position position = 9;
+    bool in_combat = 10;
+    CombatTarget combat_target = 11;
+}
+
+// CombatTarget represents the current combat target.
+message CombatTarget {
+    string id = 1;
+    string name = 2;
+    int32 hp = 3;
+    int32 max_hp = 4;
+}
+
+// CombatResult represents the result of a combat action.
+message CombatResult {
+    int32 turn = 1;
+    int32 player_damage = 2;
+    int32 monster_damage = 3;
+    int32 player_hp = 4;
+    int32 player_max_hp = 5;
+    int32 monster_hp = 6;
+    int32 monster_max_hp = 7;
+    bool player_died = 8;
+    bool monster_died = 9;
+    int32 exp_gained = 10;
+}
+
+// MapState represents the current state of the map.
+message MapState {
+    repeated PlayerInfo players = 1;
+    MonsterInfo monster = 2;
+}
+
+// PlayerInfo represents a player on the map.
+message PlayerInfo {
+    string id = 1;
+    string name = 2;
+    Position position = 3;
+    bool in_combat = 4;
+}
+
+// MonsterInfo represents the monster on the map.
+message MonsterInfo {
+    string id = 1;
+    string name = 2;
+    Position position = 3;
+    int32 hp = 4;
+    int32 max_hp = 5;
+}
+
+// GameEvent represents a game event sent to clients.
+message GameEvent {
+    EventType type = 1;
+    int64 timestamp = 2;
+    oneof payload {
+        PlayerJoinedEvent player_joined = 10;
+        PlayerLeftEvent player_left = 11;
+        PlayerMovedEvent player_moved = 12;
+        PlayerDiedEvent player_died = 13;
+        PlayerLevelUpEvent player_level_up = 14;
+        CombatStartedEvent combat_started = 20;
+        CombatTurnEvent combat_turn = 21;
+        CombatEndedEvent combat_ended = 22;
+        MonsterMovedEvent monster_moved = 30;
+        MonsterDiedEvent monster_died = 31;
+        MonsterSpawnedEvent monster_spawned = 32;
+    }
+}
+
+// EventType represents the type of game event.
+enum EventType {
+    EVENT_TYPE_UNSPECIFIED = 0;
+    EVENT_TYPE_PLAYER_JOINED = 1;
+    EVENT_TYPE_PLAYER_LEFT = 2;
+    EVENT_TYPE_PLAYER_MOVED = 3;
+    EVENT_TYPE_PLAYER_DIED = 4;
+    EVENT_TYPE_PLAYER_LEVEL_UP = 5;
+    EVENT_TYPE_COMBAT_STARTED = 10;
+    EVENT_TYPE_COMBAT_TURN = 11;
+    EVENT_TYPE_COMBAT_ENDED = 12;
+    EVENT_TYPE_MONSTER_MOVED = 20;
+    EVENT_TYPE_MONSTER_DIED = 21;
+    EVENT_TYPE_MONSTER_SPAWNED = 22;
+}
+
+// CombatEndReason represents why combat ended.
+enum CombatEndReason {
+    COMBAT_END_REASON_UNSPECIFIED = 0;
+    COMBAT_END_REASON_RETREAT = 1;
+    COMBAT_END_REASON_DEATH = 2;
+    COMBAT_END_REASON_VICTORY = 3;
+}
+
+// PlayerJoinedEvent is emitted when a player joins.
+message PlayerJoinedEvent {
+    string player_id = 1;
+    string player_name = 2;
+    Position position = 3;
+}
+
+// PlayerLeftEvent is emitted when a player leaves.
+message PlayerLeftEvent {
+    string player_id = 1;
+}
+
+// PlayerMovedEvent is emitted when a player moves.
+message PlayerMovedEvent {
+    string player_id = 1;
+    Position from = 2;
+    Position to = 3;
+}
+
+// PlayerDiedEvent is emitted when a player dies.
+message PlayerDiedEvent {
+    string player_id = 1;
+}
+
+// PlayerLevelUpEvent is emitted when a player levels up.
+message PlayerLevelUpEvent {
+    string player_id = 1;
+    int32 new_level = 2;
+}
+
+// CombatStartedEvent is emitted when combat starts.
+message CombatStartedEvent {
+    string player_id = 1;
+    string monster_id = 2;
+}
+
+// CombatTurnEvent is emitted after a combat turn.
+message CombatTurnEvent {
+    string player_id = 1;
+    string monster_id = 2;
+    int32 player_damage = 3;
+    int32 monster_damage = 4;
+    int32 player_hp = 5;
+    int32 player_max_hp = 6;
+    int32 monster_hp = 7;
+    int32 monster_max_hp = 8;
+    int32 turn = 9;
+}
+
+// CombatEndedEvent is emitted when combat ends.
+message CombatEndedEvent {
+    string player_id = 1;
+    string monster_id = 2;
+    CombatEndReason reason = 3;
+    int32 exp_gained = 4;
+}
+
+// MonsterMovedEvent is emitted when the monster moves.
+message MonsterMovedEvent {
+    string monster_id = 1;
+    Position from = 2;
+    Position to = 3;
+}
+
+// MonsterDiedEvent is emitted when the monster dies.
+message MonsterDiedEvent {
+    string monster_id = 1;
+    string killer_id = 2;
+    repeated string contributors = 3;
+}
+
+// MonsterSpawnedEvent is emitted when the monster spawns.
+message MonsterSpawnedEvent {
+    string monster_id = 1;
+    Position position = 2;
+}
